@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>📍 针灸穴位·完整自测 | 十四经+奇穴</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', '华文细黑', sans-serif;
+        }
+        body {
+            background: #ecf0e7;
+            min-height: 100vh;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+        }
+        .app {
+            max-width: 520px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* 顶栏 进度 */
+        .top-bar {
+            background: white;
+            padding: 12px 18px;
+            border-radius: 48px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+            border: 1px solid #c8d0b5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 550;
+            color: #2b4f2b;
+            letter-spacing: -0.2px;
+        }
+        .progress-badge {
+            background: #e3ecd6;
+            border-radius: 40px;
+            padding: 6px 18px;
+            display: flex;
+            gap: 20px;
+            font-size: 0.95rem;
+        }
+        .progress-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+        .dot-master { width: 10px; height: 10px; background: #2d6e2d; border-radius: 10px; }
+        .dot-learning { width: 10px; height: 10px; background: #f0b849; border-radius: 10px; }
+        .badge-num { font-weight: 600; margin-left: 2px; }
+
+        /* 抽取按钮行 */
+        .draw-row {
+            display: flex;
+            gap: 8px;
+            margin: 6px 0 2px;
+        }
+        .draw-btn {
+            flex: 1;
+            background: white;
+            border: 1px solid #b6c4a0;
+            border-radius: 48px;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #1d3b1d;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .draw-btn.primary {
+            background: #3a6b3a;
+            border-color: #1e421e;
+            color: white;
+            box-shadow: 0 5px 10px #3a6b3a55;
+        }
+        .draw-btn.primary:active { background: #2b532b; }
+        .draw-btn:active { background: #deecd0; }
+
+        /* 本次抽中卡片 */
+        .current-card {
+            background: #f6f9ee;
+            border-radius: 48px;
+            padding: 22px 18px;
+            border: 2px solid #c1d2a8;
+            text-align: center;
+        }
+        .current-label {
+            font-size: 1rem;
+            color: #617554;
+            margin-bottom: 8px;
+        }
+        #singleContainer .current-point {
+            font-size: 2.6rem;
+            font-weight: 550;
+            color: #1d451d;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .multi-points-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            max-height: 240px;
+            overflow-y: auto;
+            padding: 10px 4px;
+        }
+        .point-chip {
+            background: white;
+            border-radius: 40px;
+            padding: 10px 22px;
+            border: 1px solid #9fb280;
+            font-size: 1.2rem;
+            font-weight: 480;
+            color: #1d3f1d;
+            box-shadow: 0 2px 6px #c0bb9c;
+            white-space: nowrap;
+        }
+
+        /* 统计排行 */
+        .rank-section {
+            background: #fefcf2;
+            border-radius: 40px;
+            border: 1px solid #d2cbae;
+            padding: 16px 14px;
+        }
+        .rank-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            color: #3f5a3f;
+            font-weight: 500;
+            font-size: 1rem;
+        }
+        .rank-list {
+            max-height: 210px;
+            overflow-y: auto;
+            background: #f4f7ea;
+            border-radius: 30px;
+            padding: 8px 10px;
+            border: 1px solid #dad1b2;
+        }
+        .rank-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px dashed #cec9aa;
+            font-size: 0.95rem;
+        }
+        .rank-name {
+            width: 100px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #2d472d;
+        }
+        .rank-bar-bg {
+            flex: 1;
+            height: 18px;
+            background: #dbd6b5;
+            border-radius: 40px;
+            overflow: hidden;
+        }
+        .rank-bar-fill {
+            height: 18px;
+            background: #558b55;
+            border-radius: 40px;
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .rank-count {
+            min-width: 35px;
+            text-align: right;
+            font-weight: 500;
+            color: #235023;
+        }
+
+        /* 穴位库 + 工具栏 */
+        .library-panel {
+            background: #fefcf2;
+            border-radius: 40px;
+            border: 1px solid #d2cbae;
+            padding: 18px 14px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        .search-box {
+            flex: 2;
+            min-width: 160px;
+            background: white;
+            border: 1px solid #bcb48c;
+            border-radius: 40px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+        }
+        .icon-btn {
+            background: white;
+            border: 1px solid #bcb48c;
+            border-radius: 40px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .icon-btn:active { background: #dee9d1; }
+        .danger-btn { border-color: #c5956e; color: #774d2e; }
+        .danger-btn:active { background: #fbefe3; }
+
+        /* 穴位网格 两列 */
+        .point-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+        .point-item {
+            background: #fcfcf2;
+            border-radius: 40px;
+            padding: 8px 12px;
+            border: 1px solid #cbc09b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .point-item:active { background: #e2ecce; }
+        .point-name {
+            color: #2f462f;
+            font-weight: 440;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90px;
+        }
+        .point-count-pill {
+            background: #dad0b2;
+            border-radius: 30px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2c4f2c;
+        }
+
+        /* 导入区域 */
+        .import-area {
+            background: #f9f6e7;
+            border-radius: 30px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px dashed #b8a77b;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .import-area textarea {
+            width: 100%;
+            border: 1px solid #cbbf9a;
+            border-radius: 28px;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .delete-hint {
+            background: #fffbeb;
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: #8c6e4b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .small-btn {
+            background: white;
+            border: 1px solid #bcb48c;
+            border-radius: 30px;
+            padding: 5px 15px;
+            font-size: 0.85rem;
+        }
+        .footer-note {
+            color: #746e52;
+            font-size: 0.85rem;
+            text-align: center;
+            background: #f0ead9;
+            padding: 10px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- 顶栏 进度 -->
+    <div class="top-bar">
+        <div class="logo"><h1>📍 针灸穴位·十四经</h1></div>
+        <div class="progress-badge" id="progressDisplay">
+            <div class="progress-item"><span class="dot-master"></span><span id="masterCount">0</span></div>
+            <div class="progress-item"><span class="dot-learning"></span><span id="learningCount">250</span></div>
+        </div>
+    </div>
+
+    <!-- 抽取按钮三兄弟 -->
+    <div class="draw-row">
+        <button class="draw-btn primary" id="drawSingleBtn">单穴</button>
+        <button class="draw-btn" id="drawFiveBtn">五穴</button>
+        <button class="draw-btn" id="drawTenBtn">十穴</button>
+    </div>
+
+    <!-- 本次抽中卡片 -->
+    <div class="current-card" id="currentCard">
+        <div class="current-label" id="currentLabel">本次抽中</div>
+        <!-- 单穴容器 -->
+        <div id="singleContainer">
+            <div class="current-point" id="currentPoint">——</div>
+        </div>
+        <!-- 多穴容器 (连抽时显示) -->
+        <div id="multiContainer" class="multi-points-container" style="display: none;"></div>
+    </div>
+
+    <!-- 统计排行卡片 -->
+    <div class="rank-section">
+        <div class="rank-header">
+            <span>📊 抽中排行</span>
+            <span style="font-size:0.8rem;">点击穴名可再抽</span>
+        </div>
+        <div class="rank-list" id="rankList">
+            <div style="padding:16px; text-align:center; color:#aaa;">暂无抽签记录</div>
+        </div>
+    </div>
+
+    <!-- 穴位库 + 编辑工具 -->
+    <div class="library-panel">
+        <div class="toolbar">
+            <input type="text" class="search-box" id="searchInput" placeholder="🔍 搜索穴位">
+            <button class="icon-btn" id="openImportBtn">📥 导入</button>
+            <button class="icon-btn danger-btn" id="deleteModeToggle">✏️ 删除</button>
+        </div>
+
+        <!-- 穴位网格 -->
+        <div class="point-grid" id="pointGrid"></div>
+
+        <!-- 导入区域 -->
+        <div class="import-area" id="importArea" style="display: none;">
+            <textarea id="bulkInput" rows="2" placeholder="输入穴位名，用逗号/空格/换行隔开"></textarea>
+            <div style="display: flex; gap: 8px;">
+                <button class="icon-btn" id="confirmImportBtn" style="flex:2;">✅ 确认</button>
+                <button class="icon-btn" id="cancelImportBtn">取消</button>
+            </div>
+        </div>
+
+        <!-- 删除模式提示 -->
+        <div class="delete-hint" id="deleteHint" style="display: none;">
+            <span>🗑️ 点击穴位库中的穴位可删除</span>
+            <button class="small-btn" id="exitDeleteMode">完成</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+            <button class="icon-btn" id="resetStatsBtn" style="flex:1;">📉 重置统计</button>
+            <button class="icon-btn" id="resetToDefaultBtn" style="flex:1;">↺ 恢复默认</button>
+        </div>
+        <div class="footer-note">点击穴名快速+1 · 等概率抽签 · 全经穴+奇穴</div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // ---------- 完整穴位库 (根据用户提供的列表) ----------
+    const DEFAULT_POINTS = [
+        // 手太阴肺经 11穴
+        "中府", "尺泽", "孔最", "列缺", "太渊", "鱼际", "少商",
+        // 手阳明大肠经 20穴
+        "商阳", "合谷", "阳溪", "偏历", "手三里", "曲池", "臂臑", "肩髃", "扶突", "迎香",
+        // 足阳明胃经 45穴
+        "承泣", "四白", "地仓", "颊车", "下关", "头维", "人迎", "梁门", "天枢", "水道", "归来", "伏兔", "梁丘", "足三里", "上巨虚", "条口", "下巨虚", "丰隆", "解溪", "内庭", "厉兑",
+        // 足太阴脾经 21穴
+        "隐白", "太白", "公孙", "三阴交", "地机", "阴陵泉", "血海", "大横", "大包",
+        // 手少阴心经 9穴
+        "极泉", "少海", "通里", "阴郄", "神门", "少府", "少冲",
+        // 手太阳小肠经 19穴
+        "少泽", "后溪", "腕骨", "养老", "支正", "小海", "肩贞", "天宗", "颧髎", "听宫",
+        // 足太阳膀胱经 67穴 (用户提供)
+        "睛明", "攒竹", "天柱", "大杼", "风门", "肺俞", "心俞", "膈俞", "肝俞", "胆俞", "脾俞", "胃俞", "三焦俞", "肾俞", "大肠俞", "小肠俞", "膀胱俞", "次髎", "承扶", "委阳", "委中", "膏肓", "志室", "秩边", "承山", "飞扬", "昆仑", "申脉", "束骨", "至阴",
+        // 足少阴肾经 27穴
+        "涌泉", "然谷", "太溪", "大钟", "照海", "复溜", "阴谷", "大赫", "肓俞",
+        // 手厥阴心包经 9穴
+        "天池", "曲泽", "郄门", "间使", "内关", "大陵", "劳宫", "中冲",
+        // 手少阳三焦经 23穴
+        "关冲", "中渚", "阳池", "外关", "支沟", "肩髎", "翳风", "角孙", "耳门", "丝竹空",
+        // 足少阳胆经 44穴
+        "瞳子髎", "听会", "率谷", "完骨", "阳白", "头临泣", "风池", "肩井", "日月", "带脉", "环跳", "风市", "阳陵泉", "光明", "悬钟", "丘墟", "足临泣", "侠溪", "足窍阴",
+        // 足厥阴肝经 14穴
+        "大敦", "行间", "太冲", "蠡沟", "曲泉", "章门", "期门",
+        // 督脉 29穴
+        "长强", "腰阳关", "命门", "至阳", "身柱", "大椎", "哑门", "风府", "百会", "上星", "神庭", "素髎", "水沟", "印堂",
+        // 任脉 24穴
+        "中极", "关元", "气海", "神阙", "下脘", "建里", "中脘", "上脘", "膻中", "天突", "廉泉", "承浆",
+        // 经外奇穴 头颈部
+        "四神聪", "太阳", "球后", "金津、玉液", "夹承浆", "牵正", "翳明", "安眠",
+        // 胸腹部
+        "子宫", "三角灸",
+        // 背部
+        "定喘", "夹脊", "胃脘下俞", "腰眼",
+        // 上肢部
+        "肩前", "二白", "腰痛点", "外劳宫", "八邪", "四缝", "十宣",
+        // 下肢部
+        "鹤顶", "百虫窝", "内膝眼", "胆囊", "阑尾", "八风"
+    ];
+
+    // 去重 (确保无重复)
+    const FINAL_POINTS = [...new Set(DEFAULT_POINTS)];
+
+    // 当前穴位库 & 频率
+    let pointList = [...FINAL_POINTS];
+    let freqMap = new Map();
+
+    // UI 元素
+    const currentPointSpan = document.getElementById('currentPoint');
+    const singleContainer = document.getElementById('singleContainer');
+    const multiContainer = document.getElementById('multiContainer');
+    const currentLabel = document.getElementById('currentLabel');
+    const rankListDiv = document.getElementById('rankList');
+    const pointGridDiv = document.getElementById('pointGrid');
+    const searchInput = document.getElementById('searchInput');
+    const masterSpan = document.getElementById('masterCount');
+    const learningSpan = document.getElementById('learningCount');
+
+    const drawSingle = document.getElementById('drawSingleBtn');
+    const drawFive = document.getElementById('drawFiveBtn');
+    const drawTen = document.getElementById('drawTenBtn');
+    const resetStatsBtn = document.getElementById('resetStatsBtn');
+    const resetDefaultBtn = document.getElementById('resetToDefaultBtn');
+    const openImportBtn = document.getElementById('openImportBtn');
+    const importArea = document.getElementById('importArea');
+    const bulkInput = document.getElementById('bulkInput');
+    const confirmImport = document.getElementById('confirmImportBtn');
+    const cancelImport = document.getElementById('cancelImportBtn');
+    const deleteModeToggle = document.getElementById('deleteModeToggle');
+    const deleteHint = document.getElementById('deleteHint');
+    const exitDeleteMode = document.getElementById('exitDeleteMode');
+
+    let deleteModeActive = false;
+
+    // 刷新UI
+    function refreshUI() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        const filtered = pointList.filter(p => p.toLowerCase().includes(searchTerm));
+        let gridHtml = '';
+        if (filtered.length === 0) {
+            gridHtml = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:#8e8b70;">🌱 无匹配穴位</div>';
+        } else {
+            filtered.forEach(p => {
+                const cnt = freqMap.get(p) || 0;
+                gridHtml += `<div class="point-item" data-point="${p}">
+                    <span class="point-name">${p}</span>
+                    <span class="point-count-pill">${cnt}</span>
+                </div>`;
+            });
+        }
+        pointGridDiv.innerHTML = gridHtml;
+
+        // 排行
+        const sorted = Array.from(freqMap.entries()).sort((a,b) => b[1] - a[1]);
+        let rankHtml = '';
+        if (sorted.length === 0) {
+            rankHtml = '<div style="padding:16px; text-align:center; color:#aaa;">暂无抽签记录</div>';
+        } else {
+            const maxCount = sorted[0][1] || 1;
+            sorted.forEach(([p, cnt]) => {
+                const percent = (cnt / maxCount) * 100;
+                rankHtml += `<div class="rank-item">
+                    <span class="rank-name">${p}</span>
+                    <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${percent}%;"></div></div>
+                    <span class="rank-count">${cnt}</span>
+                </div>`;
+            });
+        }
+        rankListDiv.innerHTML = rankHtml;
+
+        // 掌握/未掌握 (抽过一次就算掌握)
+        const total = pointList.length;
+        const mastered = new Set(Array.from(freqMap.keys()).filter(p => pointList.includes(p))).size;
+        masterSpan.textContent = mastered;
+        learningSpan.textContent = total - mastered;
+
+        // 绑定点击事件
+        document.querySelectorAll('.point-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const p = item.dataset.point;
+                if (!p) return;
+                if (deleteModeActive) {
+                    pointList = pointList.filter(x => x !== p);
+                    freqMap.delete(p);
+                    if (!pointList.includes(currentPointSpan.textContent) && currentPointSpan.textContent !== '——') {
+                        currentPointSpan.textContent = '——';
+                        singleContainer.style.display = 'block';
+                        multiContainer.style.display = 'none';
+                    }
+                    refreshUI();
+                } else {
+                    manualDrawPoint(p);
+                }
+            });
+        });
+
+        // 排行点击
+        document.querySelectorAll('.rank-item .rank-name').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const p = e.target.textContent;
+                if (p && pointList.includes(p) && !deleteModeActive) manualDrawPoint(p);
+            });
+        });
+    }
+
+    function getRandomPoint() {
+        if (pointList.length === 0) return null;
+        return pointList[Math.floor(Math.random() * pointList.length)];
+    }
+
+    function manualDrawPoint(p) {
+        if (!pointList.includes(p)) return;
+        freqMap.set(p, (freqMap.get(p) || 0) + 1);
+        singleContainer.style.display = 'block';
+        multiContainer.style.display = 'none';
+        currentPointSpan.textContent = p;
+        currentLabel.textContent = '本次抽中';
+        refreshUI();
+    }
+
+    function drawSingleFunc() {
+        const p = getRandomPoint();
+        if (!p) return;
+        freqMap.set(p, (freqMap.get(p) || 0) + 1);
+        singleContainer.style.display = 'block';
+        multiContainer.style.display = 'none';
+        currentPointSpan.textContent = p;
+        currentLabel.textContent = '本次抽中';
+        refreshUI();
+    }
+
+    function drawMultiple(n) {
+        if (pointList.length === 0) return;
+        const results = [];
+        for (let i = 0; i < n; i++) {
+            const p = getRandomPoint();
+            if (p) {
+                results.push(p);
+                freqMap.set(p, (freqMap.get(p) || 0) + 1);
+            }
+        }
+        multiContainer.innerHTML = '';
+        results.forEach(p => {
+            const chip = document.createElement('span');
+            chip.className = 'point-chip';
+            chip.textContent = p;
+            multiContainer.appendChild(chip);
+        });
+        singleContainer.style.display = 'none';
+        multiContainer.style.display = 'flex';
+        currentLabel.textContent = `连抽 ${n} 穴`;
+        refreshUI();
+    }
+
+    function resetStats() {
+        freqMap.clear();
+        singleContainer.style.display = 'block';
+        multiContainer.style.display = 'none';
+        currentPointSpan.textContent = '——';
+        currentLabel.textContent = '本次抽中';
+        refreshUI();
+    }
+
+    function resetDefault() {
+        pointList = [...FINAL_POINTS];
+        freqMap.clear();
+        singleContainer.style.display = 'block';
+        multiContainer.style.display = 'none';
+        currentPointSpan.textContent = '——';
+        currentLabel.textContent = '本次抽中';
+        deleteModeActive = false; deleteHint.style.display = 'none';
+        importArea.style.display = 'none';
+        refreshUI();
+    }
+
+    function importBulk(text) {
+        const parts = text.split(/[，,、\s\n]+/).filter(s => s.trim() !== '');
+        if (parts.length === 0) return;
+        const newPoints = [...new Set(parts)];
+        pointList = newPoints;
+        const newFreq = new Map();
+        for (let [k, v] of freqMap.entries()) {
+            if (pointList.includes(k)) newFreq.set(k, v);
+        }
+        freqMap = newFreq;
+        singleContainer.style.display = 'block';
+        multiContainer.style.display = 'none';
+        currentPointSpan.textContent = '——';
+        currentLabel.textContent = '本次抽中';
+        deleteModeActive = false; deleteHint.style.display = 'none';
+        importArea.style.display = 'none';
+        refreshUI();
+    }
+
+    // 事件绑定
+    drawSingle.addEventListener('click', drawSingleFunc);
+    drawFive.addEventListener('click', () => drawMultiple(5));
+    drawTen.addEventListener('click', () => drawMultiple(10));
+
+    resetStatsBtn.addEventListener('click', resetStats);
+    resetDefaultBtn.addEventListener('click', resetDefault);
+
+    openImportBtn.addEventListener('click', () => {
+        importArea.style.display = 'flex';
+        importArea.style.flexDirection = 'column';
+        deleteModeActive = false; deleteHint.style.display = 'none';
+    });
+    cancelImport.addEventListener('click', () => { importArea.style.display = 'none'; bulkInput.value = ''; });
+    confirmImport.addEventListener('click', () => { importBulk(bulkInput.value); bulkInput.value = ''; });
+
+    deleteModeToggle.addEventListener('click', () => {
+        deleteModeActive = !deleteModeActive;
+        deleteHint.style.display = deleteModeActive ? 'flex' : 'none';
+        importArea.style.display = 'none';
+    });
+    exitDeleteMode.addEventListener('click', () => {
+        deleteModeActive = false;
+        deleteHint.style.display = 'none';
+        refreshUI();
+    });
+
+    searchInput.addEventListener('input', refreshUI);
+
+    // 初始化
+    refreshUI();
+})();
+</script>
+</body>
+</html>
